@@ -1,3 +1,14 @@
+---
+title: AI Tweet Emotion Analyzer
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+license: mit
+app_file: main.py
+---
+
 # AI Tweet Emotion Analyzer 🤖
 
 A sophisticated emotion classification system that analyzes text and provides detailed sentiment analysis with automatic summarization.
