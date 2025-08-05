@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Tweet Emotion Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .main-container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+
+        .features {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f8f9ff, #e8eeff);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #5a67d8;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .form-container {
+            background: linear-gradient(135deg, #fafbff, #f0f2ff);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: white;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        textarea::placeholder {
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 32px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .analyze-btn:disabled {
+            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .analyze-btn:hover::before {
+            left: 100%;
+        }
+
+        .result {
+            margin-top: 40px;
+            display: none;
+            animation: slideInUp 0.6s ease;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .emotion-card {
+            text-align: center;
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            font-size: 32px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .emotion-card:hover {
+            transform: scale(1.02);
+        }
+
+        .emotion-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: currentColor;
+            opacity: 0.7;
+        }
+
+        .confidence-bar {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .confidence-percentage {
+            font-size: 28px;
+            color: #667eea;
+            margin-left: 10px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #ffffff, #f8faff);
+            padding: 30px;
+            border-radius: 20px;
+            border-left: 6px solid #667eea;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h3 {
+            color: #2d3748;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-text {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.7;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            max-width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 20px;
+            padding: 40px;
+            font-weight: 500;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            color: #e53e3e;
+            font-size: 18px;
+            padding: 30px;
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
+            border-radius: 15px;
+            border: 1px solid #fc8181;
+            font-weight: 500;
+        }
+
+        /* Enhanced emotion-specific colors */
+        .sadness { 
+            background: linear-gradient(135deg, #e6f3ff 0%, #cce7ff 100%); 
+            color: #1e40af; 
+            border-left-color: #1e40af;
+        }
+        .joy { 
+            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); 
+            color: #ea580c; 
+            border-left-color: #ea580c;
+        }
+        .love { 
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); 
+            color: #be185d; 
+            border-left-color: #be185d;
+        }
+        .anger { 
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%); 
+            color: #dc2626; 
+            border-left-color: #dc2626;
+        }
+        .fear { 
+            background: linear-gradient(135deg, #faf5ff 0%, #e9d5ff 100%); 
+            color: #7c3aed; 
+            border-left-color: #7c3aed;
+        }
+        .surprise { 
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
+            color: #16a34a; 
+            border-left-color: #16a34a;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-container {
+                padding: 30px 25px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .features {
+                gap: 10px;
+            }
+            
+            .feature {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+            
+            .emotion-card {
+                font-size: 24px;
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1>🤖 AI Tweet Emotion Analyzer</h1>
+            <p class="subtitle">Advanced sentiment analysis powered by deep learning</p>
+            <div class="features">
+                <div class="feature">
+                    <span>🧠</span> AI-Powered
+                </div>
+                <div class="feature">
+                    <span>⚡</span> Real-time Analysis
+                </div>
+                <div class="feature">
+                    <span>📊</span> 6 Emotions
+                </div>
+                <div class="feature">
+                    <span>📝</span> Auto-Summary
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <form id="emotionForm">
+                <div class="form-group">
+                    <label class="form-label">Enter your text for emotion analysis:</label>
+                    <textarea 
+                        id="tweetInput" 
+                        placeholder="Share your thoughts, feelings, or any text you'd like analyzed... 
+
+Example: 'I'm absolutely thrilled about my new job opportunity! This is going to be an amazing adventure and I can't wait to start this new chapter of my life.'"
+                        required>
+                    </textarea>
+                </div>
+                
+                <button type="submit" id="analyzeButton" class="analyze-btn">
+                    🔍 Analyze Emotion
+                </button>
+            </form>
+        </div>
+        
+        <div id="resultContainer" class="result">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Emotion emojis mapping
+        const EMOTION_EMOJIS = {
+            'sadness': '😢',
+            'joy': '😊', 
+            'love': '❤️',
+            'anger': '😠',
+            'fear': '😨',
+            'surprise': '😲'
+        };
+
+        // Get DOM elements
+        const form = document.getElementById('emotionForm');
+        const input = document.getElementById('tweetInput');
+        const button = document.getElementById('analyzeButton');
+        const resultContainer = document.getElementById('resultContainer');
+
+        // Form submission handler
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const text = input.value.trim();
+            if (!text) {
+                alert('Please enter some text to analyze');
+                return;
+            }
+
+            if (text.length < 10) {
+                alert('Please enter at least 10 characters for better analysis');
+                return;
+            }
+
+            // Show loading state
+            showLoading();
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                showResult(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to analyze the text. Please check your connection and try again.');
+            }
+        });
+
+        function showLoading() {
+            button.disabled = true;
+            button.textContent = '🔄 Analyzing...';
+            resultContainer.style.display = 'block';
+            resultContainer.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Analyzing your text with AI...
+                </div>
+            `;
+        }
+
+        function showResult(data) {
+            const emoji = EMOTION_EMOJIS[data.emotion] || '🤔';
+            const confidence = (data.confidence * 100).toFixed(1);
+            
+            resultContainer.innerHTML = `
+                <div class="emotion-card ${data.emotion}">
+                    <div style="font-size: 48px; margin-bottom: 10px;">${emoji}</div>
+                    <div>${data.emotion.toUpperCase()}</div>
+                </div>
+                
+                <div class="confidence-bar">
+                    Confidence Level: <span class="confidence-percentage">${confidence}%</span>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>📝 Analysis Summary</h3>
+                    <div class="summary-text">${data.summary}</div>
+                </div>
+            `;
+            
+            // Reset button
+            button.disabled = false;
+            button.textContent = '🔍 Analyze Emotion';
+        }
+
+        function showError(message) {
+            resultContainer.innerHTML = `<div class="error">❌ ${message}</div>`;
+            
+            // Reset button
+            button.disabled = false;
+            button.textContent = '🔍 Analyze Emotion';
+        }
+
+        // Add some interactive features
+        input.addEventListener('input', function() {
+            const charCount = this.value.length;
+            const minChars = 10;
+            
+            if (charCount > 0 && charCount < minChars) {
+                this.style.borderColor = '#fbbf24';
+            } else if (charCount >= minChars) {
+                this.style.borderColor = '#10b981';
+            } else {
+                this.style.borderColor = '#e2e8f0';
+            }
+        });
+    </script>
+</body>
+</html>
